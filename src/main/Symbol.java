@@ -1,5 +1,5 @@
 package main;
 
 public enum Symbol {
-    X, O
+    X, O, A, B
 }

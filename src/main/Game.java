@@ -1,5 +1,7 @@
 package main;
 
+import main.case2.Dialog;
+import main.case2.IntegerMinMaxDialog;
 import main.players.Player;
 
 public class Game {
@@ -12,6 +14,7 @@ public class Game {
     private Player currentPlayer;
     private final int firstAddress;
     private final int lastAddress;
+    Dialog<Integer> dialog;
 
     public Game(Board board, Player firstPlayer, Player secondPlayer) {
         this.board = board;
@@ -21,6 +24,11 @@ public class Game {
         this.analyser = new GameResultAnalyser(board);
         this.firstAddress = 1;
         this.lastAddress = board.sideLength() * board.sideLength();
+        this.dialog = new IntegerMinMaxDialog(
+                "Введите число от %s до %d".formatted(firstAddress, lastAddress),
+                "Вы ввели некорректное число",
+                firstAddress,
+                lastAddress);
         changeCurrentPlayer();
     }
 
@@ -35,10 +43,48 @@ public class Game {
     public void start() {
         while (true) {
             renderer.render();
-            System.out.printf("%s, сделайте Ваш ход (%d - %d): ", currentPlayer.getName(), firstAddress, lastAddress);
-
+            System.out.printf("%s,", currentPlayer.getName());
+            Coordinates coordinates = inpitCoordinates();
+            board.put(currentPlayer.getSymbol(), coordinates);
+            if (isWin()) {
+                showWinMessage();
+                break;
+            }
+            if (isDraw()) {
+                showDrawMessage();
+                break;
+            }
+            changeCurrentPlayer();
         }
+    }
 
+    private void showWinMessage() {
+        renderer.render();
+        System.out.printf("%s игрок победил \n", currentPlayer.getName());
+    }
+
+    private boolean isWin() {
+        return analyser.isWin(currentPlayer.getSymbol());
+    }
+
+    private boolean isDraw() {
+        return analyser.isDraw(currentPlayer.getSymbol());
+    }
+
+    private void showDrawMessage() {
+        renderer.render();
+        System.out.println("Ничья");
+    }
+
+    private Coordinates inpitCoordinates() {
+        while (true) {
+            int address = dialog.input();
+            Coordinates coordinates = addressToCoordinates(address);
+            if (board.isEmpty(coordinates)) {
+                return coordinates;
+            }
+            System.out.println("Координата занят, введите другую координату");
+        }
     }
 
     private Coordinates addressToCoordinates(int address) {
